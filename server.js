@@ -4,6 +4,7 @@ const cors = require('cors');
 const fs = require('fs');
 const {schema} = require('./schema');
 const path = require('path');
+const coinbase = require('coinbase').Client;
 
 const app = express();
 
@@ -60,6 +61,39 @@ app.get("/", (req, res) => {
 // });
 
 // const url = 'mongodb://127.0.0.1:27017/';
+
+const _coinbase = () => {
+
+	const API_KEY = 'C36wABxTv59uAyMI';
+	const API_SECRET = 'O6CHTa8fVnq0zrgrcBaBpAWhc63SKL1t';
+
+	let client = new coinbase({'apiKey': API_KEY, 'apiSecret': API_SECRET});
+
+	client.getAccounts({}, function(err, accounts) {
+	  // accounts.forEach(function(acct) {
+	  //   console.log('my bal: ' + acct.balance.amount + ' for ' + acct.name);
+	  // });
+		if(err) {
+			return 'Error'
+		} else {
+			return 'Data'
+		}
+	})
+}
+
+
+
+
+
+app.get('/coin-base', async(req, res) => {
+	const data = _coinbase();
+
+	if(data === "Data") {
+		res.send(`<h1><center>DATA</center></h1>`)
+	} else {
+		res.send(`<h1><center>ERROR</center></h1>`)
+	}
+})
 
 
 const PORT = process.env.PORT || 2000;
