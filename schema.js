@@ -1,54 +1,64 @@
 const graphql = require('graphql');
-const {GraphQLObjectType, 
+const axios = require('axios');
+const jwt = require('jsonwebtoken');
+const {signData, finalizeLogin} = require('./utilities');
+const {
+	GraphQLObjectType, 
 	GraphQLList, GraphQLInt, 
 	GraphQLString, 
-	GraphQLBoolean, 
-	GraphQLSchema} = graphql;
-const {ProductsType} = require('./types');
-const {mongo} = require('./mongo');
-// const {mutation} = require('./mutation');
- const uri = "mongodb+srv://davidbriggs:00154abs@cluster001.ueang.mongodb.net/ShopApp?retryWrites=true&w=majority"
-const RootQuery = new GraphQLObjectType({
+	GraphQLBoolean,
+	GraphQLSchema
+} = graphql;
+
+const {SignUpType, LogInType} = require('./types');
+const {mutation} = require('./mutation');
+
+ const RootQuery = new GraphQLObjectType({
 	name: "RootQuery",
 	fields: {
-		Products: {
-			type: new GraphQLList(ProductsType),
-			resolve: async() => {
-				// return mongo("mongodb://127.0.0.1:27017/", "ShopApp").then(({find}) => {
-				// 	return find({}, "Products");
-				// });
-				try {
-					
-					const res = await mongo(uri, "ShopApp")
-					const data = await res.find({}, "Products");
-					return data;
-				} catch(e) {
-					throw e;
-				}
-			}
-		},
-		Product: {
-			type: new GraphQLList(ProductsType),
+		LogIn: {
+			type: LogInType,
 			args: {
-				slug: {type: GraphQLString}
+				email: {type: GraphQLString},
+				password: {type: GraphQLString},
 			},
-			resolve: async(_, {slug}) => {
-				try {
-					const res = await mongo(uri, "ShopApp");
-					const data = await res.query({name: slug}, "Products");
-						return data;
-				} catch(e) {
-					if(e){
-						return e;
-					}
-				}
+			resolve: async(_, {email, password}) => {
+
+				const authLogin = await finalizeLogin({email, password});
+
+				const data = {
+					name,
+					email,
+					password,
+					country,
+					countryCode,
+					phoneNumber,
+					wallet: {
+						bearerToken: `Bearer ${signData({
+							name,
+							email,
+							phoneNumber,
+							password
+						})}`,
+						name: createdWallet.wallet.name,
+						addresses: createdWallet.wallet.addresses
+					},
+					token: `Bearer ${signData({
+						name,
+						email,
+						phoneNumber,
+						password
+					})}`
+				};
+				return data
 			}
 		}
 	}
 });
 
 const schema = new GraphQLSchema({
-	query: RootQuery
+	query: RootQuery,
+	mutation
 });
 
 module.exports = {

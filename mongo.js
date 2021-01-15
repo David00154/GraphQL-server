@@ -16,6 +16,7 @@ const mongo = async(url, _db) => {
 			},
 			query: async(query, collection) => {
 				try {
+					//query is an object
 					const x =  await dbo.collection(collection).find(query).toArray();
 					return x;
 				} catch(e) {
@@ -34,6 +35,17 @@ const mongo = async(url, _db) => {
 				try {
 					const x =  await dbo.collection(collection).deleteOne(query);
 					const status = [{status: "OK", message: "1 Document Deleted"}];
+					return status;
+				} catch(e) {
+					throw e;
+				}
+			},
+			deleteMany: async(query, collection) => {
+				try {
+					// query format
+					// {address: /^0/}
+					const x =  await dbo.collection(collection).deleteMany(query);
+					const status = [{status: "OK", message: "2 Documents Deleted"}];
 					return status;
 				} catch(e) {
 					throw e;
@@ -73,7 +85,17 @@ const mongo = async(url, _db) => {
 					throw e;
 				}
 			}, 
-			insert:async() => {},
+			insert:async(_data, _collection) => {
+				try {
+					const res = await dbo.collection(_collection);
+					const data = res.insertOne(_data);
+					if(data) {
+						return "Document inserted";
+					}
+				} catch(e) {
+					throw e;
+				}
+			},
 			update:async() => {},
 			limit: async() => {},
 			join: async() => {}
@@ -85,3 +107,22 @@ const mongo = async(url, _db) => {
 }
 
 module.exports = {mongo}
+
+// mongo("mongodb://localhost:27017", "DB001").then(res => {
+// 	// res.createDB().then(data => {
+// 	// 	data.createCollection("pep")
+// 	// })
+// 	const data = {
+// 		id: 1,
+// 		name: "David"
+// 	}
+// 	// res.insert(data, "pep").then(res => {
+// 	// 	console.log(res)
+// 	// })
+// 	res.query(data, "pep").then(res => {
+// 		console.log(res)
+// 	})
+// 	// res.deleteMany({name: /^0/}, "pep").then(res => {
+// 	// 	console.log(res)
+// 	// })
+// })

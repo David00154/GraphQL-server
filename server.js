@@ -1,29 +1,43 @@
 const express = require('express');
-const {graphqlHTTP} = require('express-graphql');
+const bodyParser = require('body-parser');
+// const {graphqlHTTP} = require('express-graphql');
 const cors = require('cors');
 const fs = require('fs');
 const {schema} = require('./schema');
 const path = require('path');
-const coinbase = require('coinbase').Client;
+const {signUp} = require('./routeHandlers/signUp');
+const {login} = require('./routeHandlers/logIn'); 
+const {getNotifications} = require('./routeHandlers/getNotifications');
+const {makeTransaction} = require('./routeHandlers/transaction');
+const {getEarnings} =require('./routeHandlers/getAddressDetails');
 
 const app = express();
 
-
-
 // Allow CORS
-app.use(cors())
-app.use('/graphql', graphqlHTTP({
-	graphiql: true,
-	schema
-}))
+app.use(cors());
+app.use(bodyParser.json({strict: false}))
+// app.use('/graphql', (req, res) => {
+// 	graphqlHTTP({
+// 		graphiql: true,
+// 		schema,
+// 		context: {req},
+// 		customFormatErrorFn: (err) => {
+// 			console.log(err)
+// 			return ({message: error.message})
+// 		}
+// 	})(req, res)
+// })
 
-// app.get('/signup', (req, res, next) => {
-	// console.log('Sign up started')
-	// 	console.log(req)
-	// 	res.send(JSON.stringify({
-	// 		status: 'Done'
-	// 	}))
-// });
+//Signup Route
+app.post('/user/signup', signUp);
+
+app.get('/auth/login/:email/:password', login);
+
+app.get('/user/notifications/:userId', getNotifications);
+
+app.post('/user/transaction/:userId', makeTransaction);
+
+app.get('/user/earnings/:userId/:type', getEarnings)
 
 app.get("/", (req, res) => {
 	res.send("<h1><center>Hello World!!! \n My GraphQL-server made with love...</center></h1>")
@@ -61,40 +75,6 @@ app.get("/", (req, res) => {
 // });
 
 // const url = 'mongodb://127.0.0.1:27017/';
-
-const _coinbase = () => {
-
-	const API_KEY = 'C36wABxTv59uAyMI';
-	const API_SECRET = 'O6CHTa8fVnq0zrgrcBaBpAWhc63SKL1t';
-
-	let client = new coinbase({'apiKey': API_KEY, 'apiSecret': API_SECRET});
-
-	client.getAccounts({}, function(err, accounts) {
-	  // accounts.forEach(function(acct) {
-	  //   console.log('my bal: ' + acct.balance.amount + ' for ' + acct.name);
-	  // });
-		if(err) {
-			return 'Error'
-		} else {
-			return 'Data'
-		}
-	})
-}
-
-
-
-
-
-app.get('/coin-base', async(req, res) => {
-	const data = _coinbase();
-
-	if(data === "Data") {
-		res.send(`<h1><center>DATA</center></h1>`)
-	} else {
-		res.send(`<h1><center>ERROR</center></h1>`)
-	}
-})
-
 
 const PORT = process.env.PORT || 2000;
 app.listen(PORT, () => console.log(`Server statred on port ${PORT}`));
